@@ -1,0 +1,419 @@
+
+Fatbin elf code:
+================
+arch = sm_80
+code version = [1,7]
+producer = <unknown>
+host = linux
+compile_size = 64bit
+identifier = main.cu
+
+Fatbin ptx code:
+================
+arch = sm_80
+code version = [7,4]
+producer = <unknown>
+host = linux
+compile_size = 64bit
+compressed
+identifier = main.cu
+ptxasOptions =  --generate-line-info 
+
+
+
+
+
+
+
+
+.version 7.4
+.target sm_80
+.address_size 64
+
+
+
+.visible .entry _Z26device_copy_vector2_kernelPdS_i(
+.param .u64 _Z26device_copy_vector2_kernelPdS_i_param_0,
+.param .u64 _Z26device_copy_vector2_kernelPdS_i_param_1,
+.param .u32 _Z26device_copy_vector2_kernelPdS_i_param_2
+)
+{
+.reg .pred %p<6>;
+.reg .b32 %r<27>;
+.reg .f64 %fd<2>;
+.reg .b64 %rd<13>;
+.loc	1 19 0
+$L__func_begin0:
+.loc	1 19 0
+
+
+ld.param.u64 %rd3, [_Z26device_copy_vector2_kernelPdS_i_param_0];
+ld.param.u64 %rd4, [_Z26device_copy_vector2_kernelPdS_i_param_1];
+ld.param.u32 %r7, [_Z26device_copy_vector2_kernelPdS_i_param_2];
+$L__tmp0:
+.loc	1 20 11
+mov.u32 %r1, %ntid.x;
+mov.u32 %r8, %ctaid.x;
+mov.u32 %r9, %tid.x;
+mad.lo.s32 %r2, %r8, %r1, %r9;
+$L__tmp1:
+.loc	1 21 3
+shr.u32 %r10, %r7, 31;
+add.s32 %r11, %r7, %r10;
+shr.s32 %r3, %r11, 1;
+setp.ge.s32 %p1, %r2, %r3;
+@%p1 bra $L__BB0_3;
+
+.loc	1 0 3
+cvta.to.global.u64 %rd1, %rd4;
+cvta.to.global.u64 %rd2, %rd3;
+$L__tmp2:
+.loc	1 21 29
+mov.u32 %r12, %nctaid.x;
+mul.lo.s32 %r4, %r1, %r12;
+mov.u32 %r26, %r2;
+
+$L__BB0_2:
+$L__tmp3:
+.loc	1 22 5
+mul.wide.s32 %rd5, %r26, 16;
+add.s64 %rd6, %rd1, %rd5;
+add.s64 %rd7, %rd2, %rd5;
+ld.global.v4.u32 {%r13, %r14, %r15, %r16}, [%rd7];
+st.global.v4.u32 [%rd6], {%r13, %r14, %r15, %r16};
+$L__tmp4:
+.loc	1 21 29
+add.s32 %r26, %r26, %r4;
+$L__tmp5:
+.loc	1 21 3
+setp.lt.s32 %p2, %r26, %r3;
+@%p2 bra $L__BB0_2;
+$L__tmp6:
+
+$L__BB0_3:
+.loc	1 26 3
+setp.ne.s32 %p3, %r2, %r3;
+and.b32 %r23, %r11, -2;
+sub.s32 %r24, %r7, %r23;
+setp.ne.s32 %p4, %r24, 1;
+or.pred %p5, %p3, %p4;
+@%p5 bra $L__BB0_5;
+
+.loc	1 20 11
+cvta.to.global.u64 %rd8, %rd4;
+cvta.to.global.u64 %rd9, %rd3;
+$L__tmp7:
+.loc	1 27 5
+add.s32 %r25, %r7, -1;
+mul.wide.s32 %rd10, %r25, 8;
+add.s64 %rd11, %rd9, %rd10;
+ld.global.f64 %fd1, [%rd11];
+add.s64 %rd12, %rd8, %rd10;
+st.global.f64 [%rd12], %fd1;
+$L__tmp8:
+
+$L__BB0_5:
+.loc	1 28 1
+ret;
+$L__tmp9:
+$L__func_end0:
+
+}
+
+.visible .entry _Z26device_copy_vector4_kernelPdS_i(
+.param .u64 _Z26device_copy_vector4_kernelPdS_i_param_0,
+.param .u64 _Z26device_copy_vector4_kernelPdS_i_param_1,
+.param .u32 _Z26device_copy_vector4_kernelPdS_i_param_2
+)
+{
+.reg .pred %p<10>;
+.reg .b32 %r<52>;
+.reg .f64 %fd<6>;
+.reg .b64 %rd<28>;
+.loc	1 30 0
+$L__func_begin1:
+.loc	1 30 0
+
+
+ld.param.u64 %rd17, [_Z26device_copy_vector4_kernelPdS_i_param_0];
+ld.param.u64 %rd18, [_Z26device_copy_vector4_kernelPdS_i_param_1];
+ld.param.u32 %r16, [_Z26device_copy_vector4_kernelPdS_i_param_2];
+$L__tmp10:
+.loc	1 31 11
+cvta.to.global.u64 %rd1, %rd18;
+cvta.to.global.u64 %rd2, %rd17;
+mov.u32 %r1, %ntid.x;
+mov.u32 %r17, %ctaid.x;
+mov.u32 %r18, %tid.x;
+mad.lo.s32 %r2, %r17, %r1, %r18;
+$L__tmp11:
+.loc	1 32 3
+shr.s32 %r19, %r16, 31;
+shr.u32 %r20, %r19, 30;
+add.s32 %r21, %r16, %r20;
+shr.s32 %r3, %r21, 2;
+setp.ge.s32 %p1, %r2, %r3;
+@%p1 bra $L__BB1_3;
+
+$L__tmp12:
+.loc	1 32 29
+mov.u32 %r22, %nctaid.x;
+mul.lo.s32 %r4, %r1, %r22;
+mov.u32 %r47, %r2;
+
+$L__BB1_2:
+$L__tmp13:
+.loc	1 33 5
+mul.wide.s32 %rd19, %r47, 32;
+add.s64 %rd20, %rd1, %rd19;
+add.s64 %rd21, %rd2, %rd19;
+ld.global.v4.u32 {%r23, %r24, %r25, %r26}, [%rd21];
+ld.global.v4.u32 {%r31, %r32, %r33, %r34}, [%rd21+16];
+st.global.v4.u32 [%rd20], {%r23, %r24, %r25, %r26};
+st.global.v4.u32 [%rd20+16], {%r31, %r32, %r33, %r34};
+$L__tmp14:
+.loc	1 32 29
+add.s32 %r47, %r47, %r4;
+$L__tmp15:
+.loc	1 32 3
+setp.lt.s32 %p2, %r47, %r3;
+@%p2 bra $L__BB1_2;
+$L__tmp16:
+
+$L__BB1_3:
+.loc	1 37 17
+and.b32 %r42, %r21, -4;
+sub.s32 %r7, %r16, %r42;
+.loc	1 38 3
+setp.eq.s32 %p3, %r7, 0;
+setp.ne.s32 %p4, %r2, %r3;
+or.pred %p5, %p4, %p3;
+@%p5 bra $L__BB1_10;
+
+$L__tmp17:
+.loc	1 39 5
+and.b32 %r49, %r7, 3;
+setp.eq.s32 %p6, %r49, 0;
+mov.u32 %r50, %r7;
+@%p6 bra $L__BB1_7;
+
+.loc	1 0 5
+sub.s32 %r43, %r16, %r7;
+.loc	1 39 5
+mul.wide.s32 %rd22, %r43, 8;
+add.s64 %rd25, %rd1, %rd22;
+add.s64 %rd24, %rd2, %rd22;
+mov.u32 %r50, %r7;
+
+$L__BB1_6:
+.pragma "nounroll";
+$L__tmp18:
+.loc	1 40 15
+add.s32 %r50, %r50, -1;
+.loc	1 41 7
+ld.global.f64 %fd1, [%rd24];
+st.global.f64 [%rd25], %fd1;
+$L__tmp19:
+.loc	1 39 5
+add.s64 %rd25, %rd25, 8;
+add.s64 %rd24, %rd24, 8;
+add.s32 %r49, %r49, -1;
+setp.ne.s32 %p7, %r49, 0;
+@%p7 bra $L__BB1_6;
+
+$L__BB1_7:
+add.s32 %r44, %r7, -1;
+setp.lt.u32 %p8, %r44, 3;
+@%p8 bra $L__BB1_10;
+
+.loc	1 0 5
+sub.s32 %r45, %r16, %r50;
+add.s32 %r46, %r45, 2;
+.loc	1 39 5
+mul.wide.s32 %rd23, %r46, 8;
+add.s64 %rd27, %rd1, %rd23;
+add.s64 %rd26, %rd2, %rd23;
+
+$L__BB1_9:
+$L__tmp20:
+.loc	1 41 7
+ld.global.f64 %fd2, [%rd26+-16];
+st.global.f64 [%rd27+-16], %fd2;
+ld.global.f64 %fd3, [%rd26+-8];
+st.global.f64 [%rd27+-8], %fd3;
+ld.global.f64 %fd4, [%rd26];
+st.global.f64 [%rd27], %fd4;
+ld.global.f64 %fd5, [%rd26+8];
+st.global.f64 [%rd27+8], %fd5;
+$L__tmp21:
+.loc	1 39 5
+add.s64 %rd27, %rd27, 32;
+add.s64 %rd26, %rd26, 32;
+$L__tmp22:
+.loc	1 40 15
+add.s32 %r50, %r50, -4;
+$L__tmp23:
+.loc	1 39 5
+setp.ne.s32 %p9, %r50, 0;
+@%p9 bra $L__BB1_9;
+$L__tmp24:
+
+$L__BB1_10:
+.loc	1 44 1
+ret;
+$L__tmp25:
+$L__func_end1:
+
+}
+
+.visible .entry _Z9device_ioIdEvmPKT_PS0_(
+.param .u64 _Z9device_ioIdEvmPKT_PS0__param_0,
+.param .u64 _Z9device_ioIdEvmPKT_PS0__param_1,
+.param .u64 _Z9device_ioIdEvmPKT_PS0__param_2
+)
+{
+.reg .pred %p<3>;
+.reg .b32 %r<10>;
+.reg .f64 %fd<2>;
+.reg .b64 %rd<13>;
+.loc	1 64 0
+$L__func_begin2:
+.loc	1 64 0
+
+
+ld.param.u64 %rd6, [_Z9device_ioIdEvmPKT_PS0__param_0];
+ld.param.u64 %rd7, [_Z9device_ioIdEvmPKT_PS0__param_1];
+ld.param.u64 %rd8, [_Z9device_ioIdEvmPKT_PS0__param_2];
+$L__tmp26:
+.loc	1 69 18
+mov.u32 %r1, %ntid.x;
+mov.u32 %r6, %ctaid.x;
+mov.u32 %r7, %tid.x;
+mad.lo.s32 %r9, %r6, %r1, %r7;
+.loc	1 69 5
+cvt.s64.s32 %rd12, %r9;
+setp.ge.u64 %p1, %rd12, %rd6;
+@%p1 bra $L__BB2_3;
+
+$L__tmp27:
+.loc	1 71 10
+mov.u32 %r8, %nctaid.x;
+mul.lo.s32 %r3, %r1, %r8;
+$L__tmp28:
+.loc	1 69 18
+cvta.to.global.u64 %rd2, %rd7;
+cvta.to.global.u64 %rd3, %rd8;
+
+$L__BB2_2:
+$L__tmp29:
+.loc	1 73 9
+shl.b64 %rd9, %rd12, 3;
+add.s64 %rd10, %rd2, %rd9;
+ld.global.f64 %fd1, [%rd10];
+add.s64 %rd11, %rd3, %rd9;
+st.global.f64 [%rd11], %fd1;
+$L__tmp30:
+.loc	1 71 10
+add.s32 %r9, %r9, %r3;
+$L__tmp31:
+.loc	1 69 5
+cvt.s64.s32 %rd12, %r9;
+setp.lt.u64 %p2, %rd12, %rd6;
+@%p2 bra $L__BB2_2;
+$L__tmp32:
+
+$L__BB2_3:
+.loc	1 75 1
+ret;
+$L__tmp33:
+$L__func_end2:
+
+}
+
+.visible .entry _Z12device_saxpyIdEvmT_PKS0_PS0_(
+.param .u64 _Z12device_saxpyIdEvmT_PKS0_PS0__param_0,
+.param .f64 _Z12device_saxpyIdEvmT_PKS0_PS0__param_1,
+.param .u64 _Z12device_saxpyIdEvmT_PKS0_PS0__param_2,
+.param .u64 _Z12device_saxpyIdEvmT_PKS0_PS0__param_3
+)
+{
+.reg .pred %p<3>;
+.reg .b32 %r<10>;
+.reg .f64 %fd<5>;
+.reg .b64 %rd<13>;
+.loc	1 49 0
+$L__func_begin3:
+.loc	1 49 0
+
+
+ld.param.u64 %rd6, [_Z12device_saxpyIdEvmT_PKS0_PS0__param_0];
+ld.param.f64 %fd1, [_Z12device_saxpyIdEvmT_PKS0_PS0__param_1];
+ld.param.u64 %rd7, [_Z12device_saxpyIdEvmT_PKS0_PS0__param_2];
+ld.param.u64 %rd8, [_Z12device_saxpyIdEvmT_PKS0_PS0__param_3];
+$L__tmp34:
+.loc	1 54 18
+mov.u32 %r1, %ntid.x;
+mov.u32 %r6, %ctaid.x;
+mov.u32 %r7, %tid.x;
+mad.lo.s32 %r9, %r6, %r1, %r7;
+.loc	1 54 5
+cvt.s64.s32 %rd12, %r9;
+setp.ge.u64 %p1, %rd12, %rd6;
+@%p1 bra $L__BB3_3;
+
+$L__tmp35:
+.loc	1 56 10
+mov.u32 %r8, %nctaid.x;
+mul.lo.s32 %r3, %r1, %r8;
+$L__tmp36:
+.loc	1 54 18
+cvta.to.global.u64 %rd2, %rd7;
+cvta.to.global.u64 %rd3, %rd8;
+
+$L__BB3_2:
+$L__tmp37:
+.loc	1 58 9
+shl.b64 %rd9, %rd12, 3;
+add.s64 %rd10, %rd2, %rd9;
+ld.global.f64 %fd2, [%rd10];
+add.s64 %rd11, %rd3, %rd9;
+ld.global.f64 %fd3, [%rd11];
+fma.rn.f64 %fd4, %fd2, %fd1, %fd3;
+st.global.f64 [%rd11], %fd4;
+$L__tmp38:
+.loc	1 56 10
+add.s32 %r9, %r9, %r3;
+$L__tmp39:
+.loc	1 54 5
+cvt.s64.s32 %rd12, %r9;
+setp.lt.u64 %p2, %rd12, %rd6;
+@%p2 bra $L__BB3_2;
+$L__tmp40:
+
+$L__BB3_3:
+.loc	1 60 1
+ret;
+$L__tmp41:
+$L__func_end3:
+
+}
+
+.file	1 "/users/kszenes/cuda_practice/saxpy/main.cu"
+
+Fatbin elf code:
+================
+arch = sm_86
+code version = [1,7]
+producer = <unknown>
+host = linux
+compile_size = 64bit
+identifier = main.cu
+
+Fatbin elf code:
+================
+arch = sm_70
+code version = [1,7]
+producer = <unknown>
+host = linux
+compile_size = 64bit
+identifier = main.cu
