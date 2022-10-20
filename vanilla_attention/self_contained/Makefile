@@ -3,7 +3,9 @@ CXX_FLAGS=-std=c++11 -O3 -I./include \
 		  --compiler-options "-Wall -Wextra" \
 		  -gencode=arch=compute_86,code=sm_86 \
 		  -gencode=arch=compute_80,code=sm_80 \
-		  -gencode=arch=compute_70,code=sm_70 
+		  -gencode=arch=compute_70,code=sm_70 \
+		  -gencode=arch=compute_60,code=sm_60 
+
 
 .PHONY: all clean
 all: vanilla_attention
