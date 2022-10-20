@@ -7,6 +7,7 @@
 #include <cuda_runtime.h>
 
 #include "host_utils.h"
+#include "sort_vector.h"
 #include "timer.h"
 #include "utils.h"
 #include "vanilla_attention_kernels.h"
@@ -64,6 +65,7 @@ int main() {
     A_rows_coo_h[iter_idx] = rand() % rows;
     A_cols_h[iter_idx] = rand() % rows;
   }
+  sort_vectors_by_row(A_rows_coo_h, A_cols_h);
 
   size_t *A_rows_coo_d;
   size_t *A_cols_d;
