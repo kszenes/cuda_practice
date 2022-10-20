@@ -7,7 +7,6 @@
 #include <cuda_runtime.h>
 
 #include "host_utils.h"
-#include "sort_vector.h"
 #include "timer.h"
 #include "utils.h"
 #include "vanilla_attention_kernels.h"
@@ -66,24 +65,16 @@ int main() {
     A_cols_h[iter_idx] = rand() % rows;
   }
 
-  sort_vectors_by_row(A_rows_coo_h, A_cols_h);
-
-  auto A_rows_csr_h = coo_to_crs(A_rows_coo_h, rows);
-
   size_t *A_rows_coo_d;
-  size_t *A_rows_csr_d;
   size_t *A_cols_d;
 
   CUDA_CHECK(cudaMalloc(&A_rows_coo_d, nnz * sizeof(size_t)));
   CUDA_CHECK(cudaMalloc(&A_cols_d, nnz * sizeof(size_t)));
-  CUDA_CHECK(cudaMalloc(&A_rows_csr_d, (rows + 1) * sizeof(size_t)));
 
   CUDA_CHECK(cudaMemcpy(A_rows_coo_d, A_rows_coo_h.data(), nnz * sizeof(size_t),
                         cudaMemcpyHostToDevice));
   CUDA_CHECK(cudaMemcpy(A_cols_d, A_cols_h.data(), nnz * sizeof(size_t),
                         cudaMemcpyHostToDevice));
-  CUDA_CHECK(cudaMemcpy(A_rows_csr_d, A_rows_csr_h.data(),
-                        (rows + 1) * sizeof(size_t), cudaMemcpyHostToDevice));
 
   GPUTimer timer;
 
@@ -173,7 +164,6 @@ int main() {
   CUDA_CHECK(cudaFree(res_d));
   CUDA_CHECK(cudaFree(H_d));
   CUDA_CHECK(cudaFree(HT_d));
-  CUDA_CHECK(cudaFree(A_rows_csr_d));
   CUDA_CHECK(cudaFree(A_rows_coo_d));
   CUDA_CHECK(cudaFree(A_cols_d));
 }
