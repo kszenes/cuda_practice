@@ -3,6 +3,7 @@
 #include <cuda_runtime.h>
 #include "utils.h"
 
+// TODO: Missing softmax for now
 template <typename T>
 __global__ void
 computeS_kernel(const size_t *__restrict__ A_rows,
