@@ -8,10 +8,10 @@ CXX_FLAGS=-std=c++11 -O3 -I./include \
 
 
 .PHONY: all clean
-all: gat
+all: vanilla_attention
 
-gat: main.cu include
-	nvcc main.cu -o gat ${CXX_FLAGS}
+vanilla_attention: main.cu include
+	nvcc main.cu -lcusparse -o vanilla_attention ${CXX_FLAGS}
 
 clean:
-	rm -rf gat
+	rm -rf vanilla_attention

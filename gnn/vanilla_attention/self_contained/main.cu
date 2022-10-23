@@ -1,18 +1,16 @@
-// Computes the operation $A \odot (1 * vL^T) + (vR * 1^T)$ for the GAT model
-// where vectors $vL = aL^T * W^T * H^T$ and $vR = H * W * aR$ and
-// matrix A is sparse stored and stored in COO format
+// Computes the L2-norm (dot product) between all rows of a matrix
+// Matrix is stored in row-major format!
 #include <cassert>
 #include <iostream>
 #include <vector>
 
 #include <cuda_runtime.h>
-#include <cublas_v2.h>
 
-#include "gat_kernels.h"
 #include "host_utils.h"
 #include "sort_vector.h"
 #include "timer.h"
 #include "utils.h"
+#include "vanilla_attention_kernels.h"
 
 #define ERR_NE(X, Y)                                                           \
   do {                                                                         \
@@ -45,20 +43,18 @@ int main() {
   const bool checkRMSE = true;
   const bool print_debug = false;
 
-
-  const size_t rows = 100000;    // rows = Hrows
-  const size_t cols = 128;       // cols = Wcols
+  const size_t rows = 100000;
+  const size_t cols = 1024; // assumes that cols < 1024 !
+  assert((cols <= 1024) &&
+         "Cols must be smaller than 1024 to fit in thread block");
   const double sparsity_density = 0.01;
   const size_t nnz = floor(rows * rows * sparsity_density);
-
-  std::cout << "Rows: " << rows << '\n';
-  std::cout << "Cols: " << cols << '\n';
+  // size_t nnz = rows * rows;
+  std::cout << "Rows: " << rows;
+  std::cout << "; Cols: " << cols << '\n';
   std::cout << "nnz: " << nnz << '\n';
-  // S_{ij} = vL{i} + vR{j}
-  const double numFlops = nnz * 1e-9;
-  // size(A) + vL + vR = 3 * nnz + 2 * rows
-  const double numBytes =
-      (3 * nnz * sizeof(floatType) + 2 * rows * sizeof(size_t)) * 1e-9;
+  const double numFlops = 2 * nnz * cols * 1e-9;
+  const double numBytes = (2 * rows * cols + 3 * nnz) * sizeof(floatType) * 1e-9;
   printf("Memory usage =         %f GB\n", numBytes);
   printf("Arithmetic Intensity:  %f FLOPs/Bytes\n", numFlops / numBytes);
 
@@ -84,27 +80,24 @@ int main() {
 
   GPUTimer timer;
 
-  floatType  *vecL_h, *vecR_h, *res_h;
-  CUDA_CHECK(cudaMallocHost(&vecL_h, rows * sizeof(floatType)));
-  CUDA_CHECK(cudaMallocHost(&vecR_h, rows * sizeof(floatType)));
+  floatType *H_h, *HT_h, *res_h;
+  CUDA_CHECK(cudaMallocHost(&H_h, rows * cols * sizeof(floatType)));
+  CUDA_CHECK(cudaMallocHost(&HT_h, rows * cols * sizeof(floatType)));
   CUDA_CHECK(cudaMallocHost(&res_h, nnz * sizeof(floatType)));
 
-  floatType *vecL_d, *vecR_d, *res_d;
-  CUDA_CHECK(cudaMalloc(&vecL_d, rows * sizeof(floatType)));
-  CUDA_CHECK(cudaMalloc(&vecR_d, rows * sizeof(floatType)));
+  floatType *H_d, *HT_d, *res_d;
+  CUDA_CHECK(cudaMalloc(&H_d, rows * cols * sizeof(floatType)));
+  CUDA_CHECK(cudaMalloc(&HT_d, rows * cols * sizeof(floatType)));
   CUDA_CHECK(cudaMalloc(&res_d, nnz * sizeof(floatType)));
 
-  for (size_t i = 0; i < rows; i++) {
-    vecL_h[i] = (((floatType)rand()) / RAND_MAX - 0.5) * 100;
+  for (size_t i = 0; i < rows * cols; i++) {
+    H_h[i] = (((floatType)rand()) / RAND_MAX - 0.5) * 100;
+    HT_h[i] = H_h[i];
     if (print_debug) {
-      std::cout << vecL_h[i] << ' ';
-    }
-  }
-  std::cout << "\n";
-  for (size_t i = 0; i < rows; i++) {
-    vecR_h[i] = (((floatType)rand()) / RAND_MAX - 0.5) * 100;
-    if (print_debug) {
-      std::cout << vecR_h[i] << ' ';
+      if (i % cols == 0) {
+        std::cout << "\n";
+      }
+      std::cout << H_h[i] << ' ';
     }
   }
   std::cout << "\n";
@@ -112,9 +105,9 @@ int main() {
   if (print_debug)
     std::cout << "Vector init complete\n";
 
-  CUDA_CHECK(cudaMemcpy(vecL_d, vecL_h, rows * sizeof(floatType),
+  CUDA_CHECK(cudaMemcpy(H_d, H_h, rows * cols * sizeof(floatType),
                         cudaMemcpyHostToDevice));
-  CUDA_CHECK(cudaMemcpy(vecR_d, vecR_h, rows * sizeof(floatType),
+  CUDA_CHECK(cudaMemcpy(HT_d, HT_h, rows * cols * sizeof(floatType),
                         cudaMemcpyHostToDevice));
   CUDA_CHECK(cudaMemcpy(res_d, res_h, nnz * sizeof(floatType),
                         cudaMemcpyHostToDevice));
@@ -122,11 +115,9 @@ int main() {
   double cpu_time = 0.0;
   if (checkRMSE) {
     for (int iter = 0; iter < runs; iter++) {
-      host_computeS(A_rows_coo_h.data(), A_cols_h.data(), vecL_h, vecR_h, nnz,
-                    res_h);
       timer.start();
-      host_computeS(A_rows_coo_h.data(), A_cols_h.data(), vecL_h, vecR_h, nnz,
-                    res_h);
+      host_batched_dot(A_rows_coo_h.data(), A_cols_h.data(), nnz, cols, H_h,
+                       res_h);
       cpu_time += timer.seconds() / runs;
     }
     if (print_debug) {
@@ -137,12 +128,18 @@ int main() {
       std::cout << '\n';
     }
   }
-  // === Cublas ===
+
+  CUDA_CHECK(cudaMemset(res_d, 0, nnz * sizeof(floatType)));
+
+  // Parallelizes numBlocks_y over number of nnz up to max limit
+  unsigned int numBlocks_y = (unsigned int)min(nnz, (size_t)MAX_GRID_Y);
+  std::cout << "NumBlocks_y: " << numBlocks_y << '\n';
+
   double coo_time = 0.0;
   for (int iter = 0; iter < runs; iter++) {
-    computeS(A_rows_coo_d, A_cols_d, vecL_d, vecR_d, nnz, res_d);
+    vanilla_attention_coo(A_rows_coo_d, A_cols_d, nnz, cols, H_d, HT_d, res_d);
     timer.start();
-    computeS(A_rows_coo_d, A_cols_d, vecL_d, vecR_d, nnz, res_d);
+    vanilla_attention_coo(A_rows_coo_d, A_cols_d, nnz, cols, H_d, HT_d, res_d);
     coo_time += timer.seconds() / runs;
   }
 
@@ -161,14 +158,14 @@ int main() {
   if (checkRMSE)
     printf("CPU:     %.4f GB/s;\t%.4f GFLOPS (%f sec) \n", numBytes / cpu_time,
            numFlops / cpu_time, cpu_time);
-          
+
   CUDA_CHECK(cudaFreeHost(res_h));
-  CUDA_CHECK(cudaFreeHost(vecL_h));
-  CUDA_CHECK(cudaFreeHost(vecR_h));
+  CUDA_CHECK(cudaFreeHost(H_h));
+  CUDA_CHECK(cudaFreeHost(HT_h));
 
   CUDA_CHECK(cudaFree(res_d));
-  CUDA_CHECK(cudaFree(vecL_d));
-  CUDA_CHECK(cudaFree(vecR_d));
+  CUDA_CHECK(cudaFree(H_d));
+  CUDA_CHECK(cudaFree(HT_d));
   CUDA_CHECK(cudaFree(A_rows_coo_d));
   CUDA_CHECK(cudaFree(A_cols_d));
 }
