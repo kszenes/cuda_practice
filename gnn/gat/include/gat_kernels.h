@@ -15,7 +15,7 @@ computeS_kernel(const size_t *__restrict__ A_rows,
   for (; element < nnz; element += blockDim.x * gridDim.x) {
     row = A_rows[element];
     col = A_cols[element];
-    res[element] = vecL[row] + vecR[col];
+    res[element] = exp(max(vecL[row] + vecR[col], 0.0)); // exp(relu(C))
   }
 }
 
